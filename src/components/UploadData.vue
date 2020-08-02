@@ -27,7 +27,11 @@
   </div>
 </template>
 
+
 <script>
+
+  import Papa from 'papaparse'
+
   export default {
     name: "UploadData",
     data: () => ({
@@ -43,15 +47,33 @@
       readPickedFile(e) {
         this.processInput(e.target.files);
       },
+      getEntries: (file) => {
+        zip.createReader(new zip.BlobReader(file), zipReader => {
+          zipReader.getEntries((entries) => {
+            if (entries.length) {
+              entries.forEach(entry => {
+                entry.getData(new zip.TextWriter(), text => {
+                  console.log(entry.filename);
+                  console.log(Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true
+                  }));
+                  zipReader.close(() => {});
+                })
+              });
+            }
 
+          });
+        }, onerror);
+      },
       processInput(files) {
         if (!files) return;
         let file = files[0];
         this.inputError = !file.name.endsWith(".zip");
-
+        let fileList = [];
+        this.getEntries(file);
       }
-
-    }
+    },
   }
 </script>
 
