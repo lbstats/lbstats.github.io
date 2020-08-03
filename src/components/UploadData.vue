@@ -30,7 +30,7 @@
 
 <script>
 
-  import Papa from 'papaparse'
+  import Papa from 'papaparse';
 
   export default {
     name: "UploadData",
@@ -38,7 +38,15 @@
       dragging: false,
       inputError: false
     }),
+    computed: {
+      profile() {
+        return this.$store.getters.profile;
+      }
+    },
     methods: {
+      storeProfile(data) {
+        this.$store.dispatch('userData/setUserData', data)
+      },
       readDroppedFile(e) {
         this.dragging = false;
         this.processInput(e.dataTransfer.files);
@@ -47,34 +55,70 @@
       readPickedFile(e) {
         this.processInput(e.target.files);
       },
-      getEntries: (file) => {
+      getEntries: function (file) {
+        let data = {};
+        let promises = [];
         zip.createReader(new zip.BlobReader(file), zipReader => {
           zipReader.getEntries((entries) => {
             if (entries.length) {
+
               entries.forEach(entry => {
-                entry.getData(new zip.TextWriter(), text => {
-                  console.log(entry.filename);
-                  console.log(Papa.parse(text, {
-                    header: true,
-                    skipEmptyLines: true
-                  }));
-                  zipReader.close(() => {});
-                })
+                let dataParsingPromise = new Promise((resolve, reject) => {
+                  entry.getData(new zip.TextWriter(), text => {
+                    let key = entry.filename.replace(".csv", "");
+                    let parsedJson = Papa.parse(text, {
+                      header: true,
+                      skipEmptyLines: true
+                    });
+
+                    switch (true) {
+                      case key.startsWith("profile") : {
+                        data[key] = parsedJson.data[0];
+                        break;
+                      }
+
+                      case key.startsWith("lists/"): {
+                        let [parent, child] = key.split("/");
+                        data[parent] = data[parent] || [];
+                        data[parent].push({name: child, list: parsedJson.data[0]});
+                        break;
+                      }
+
+                      case key.startsWith("deleted/"): {
+                        let [parent, child] = key.split("/");
+                        data[parent] = data[parent] || {};
+                        data[parent][child] = parsedJson.data;
+                        break;
+                      }
+
+                      default: {
+                        data[key] = parsedJson.data;
+                      }
+                    }
+
+                    resolve();
+                  });
+                });
+                promises.push(dataParsingPromise);
+              });
+
+              Promise.all(promises).then(() => {
+                this.storeProfile(data);
               });
             }
-
           });
+
         }, onerror);
       },
       processInput(files) {
         if (!files) return;
         let file = files[0];
         this.inputError = !file.name.endsWith(".zip");
-        let fileList = [];
         this.getEntries(file);
       }
     },
   }
+
 </script>
 
 <style lang="less">
