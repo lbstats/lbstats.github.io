@@ -22,12 +22,8 @@
       export your
       data
     </div>
-
-
   </div>
 </template>
-
-
 <script>
 
   import Papa from 'papaparse';
@@ -36,11 +32,14 @@
     name: "UploadData",
     data: () => ({
       dragging: false,
-      inputError: false
+      inputError: false,
     }),
     computed: {
       profile() {
         return this.$store.getters.profile;
+      },
+      isDataReady() {
+        return this.$store.getters.profile.Username != null
       }
     },
     methods: {
@@ -55,55 +54,57 @@
       readPickedFile(e) {
         this.processInput(e.target.files);
       },
-      getEntries: function (file) {
+      parseCsv: function (fileEntry, parsedData, callback) {
+        return text => {
+          let key = fileEntry.filename.replace(".csv", "");
+          let parsedJson = Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true
+          });
+
+          switch (true) {
+            case key.startsWith("profile") : {
+              parsedData[key] = parsedJson.data[0];
+              break;
+            }
+
+            case key.startsWith("lists/"): {
+              let [parent, child] = key.split("/");
+              parsedData[parent] = parsedData[parent] || [];
+              parsedData[parent].push({name: child, list: parsedJson.data[0]});
+              break;
+            }
+
+            case key.startsWith("deleted/"): {
+              let [parent, child] = key.split("/");
+              parsedData[parent] = parsedData[parent] || {};
+              parsedData[parent][child] = parsedJson.data;
+              break;
+            }
+
+            default: {
+              parsedData[key] = parsedJson.data;
+            }
+          }
+
+          callback();
+        };
+      }, getEntries: function (file) {
         let data = {};
         let promises = [];
         zip.createReader(new zip.BlobReader(file), zipReader => {
           zipReader.getEntries((entries) => {
             if (entries.length) {
-
               entries.forEach(entry => {
                 let dataParsingPromise = new Promise((resolve, reject) => {
-                  entry.getData(new zip.TextWriter(), text => {
-                    let key = entry.filename.replace(".csv", "");
-                    let parsedJson = Papa.parse(text, {
-                      header: true,
-                      skipEmptyLines: true
-                    });
-
-                    switch (true) {
-                      case key.startsWith("profile") : {
-                        data[key] = parsedJson.data[0];
-                        break;
-                      }
-
-                      case key.startsWith("lists/"): {
-                        let [parent, child] = key.split("/");
-                        data[parent] = data[parent] || [];
-                        data[parent].push({name: child, list: parsedJson.data[0]});
-                        break;
-                      }
-
-                      case key.startsWith("deleted/"): {
-                        let [parent, child] = key.split("/");
-                        data[parent] = data[parent] || {};
-                        data[parent][child] = parsedJson.data;
-                        break;
-                      }
-
-                      default: {
-                        data[key] = parsedJson.data;
-                      }
-                    }
-
-                    resolve();
-                  });
+                  entry.getData(new zip.TextWriter(), this.parseCsv(entry, data, resolve));
                 });
                 promises.push(dataParsingPromise);
               });
 
               Promise.all(promises).then(() => {
                 this.storeProfile(data);
+                this.$router.push('stats');
               });
             }
           });

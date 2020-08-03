@@ -14,6 +14,16 @@
 
   export default {
     components: {Footer, UploadData, WelcomeBanner},
+    computed: {
+      isDataReady() {
+        return this.$store.getters['userData/profile'].Username != null
+      }
+    },
+    created() {
+      if (this.isDataReady) {
+        this.$router.push('stats');
+      }
+    }
   }
 </script>
 
