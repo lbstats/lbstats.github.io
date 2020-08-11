@@ -28,16 +28,21 @@
     </popover>
 
     <popover name="custom-pick" class="popover" width=270 ref="customDateRangePopover">
-      <div class="date-label"><span>From</span>
-        <datetime input-class="range-input" v-model="startYear" class="theme-dark"
-                  :max-datetime="endYear || new Date().toISOString()"></datetime>
-      </div>
-      <div class="date-label"><span>To</span>
-        <datetime input-class="range-input" v-model="endYear" class="theme-dark"
-                  :min-datetime="startYear" :max-datetime="new Date().toISOString()"></datetime>
-      </div>
-      <input class="apply-button" type="button" value="Submit"
-             @click="changeSelection('Custom', { customRangeSelection: { from: startYear, to: endYear}})"/>
+      <form v-on:keyup.enter="changeSelection('Custom', { customRangeSelection: { from: startYear, to: endYear}})">
+        <div class="date-label"><span>From</span>
+          <datetime input-class="range-input" v-model="startYear" class="theme-dark"
+                    :max-datetime="endYear || new Date().toISOString()"></datetime>
+        </div>
+        <div class="date-label"><span>To</span>
+          <datetime input-class="range-input" v-model="endYear" class="theme-dark"
+                    :min-datetime="startYear" :max-datetime="new Date().toISOString()"></datetime>
+        </div>
+        <input class="apply-button" type="submit" value="Submit"
+               @keyup.enter.native="console.log('hey')"
+               v-on:keyup.enter="console.log('hello')"
+               @keyup.enter="console.log('hh')"
+               @click="changeSelection('Custom', { customRangeSelection: { from: startYear, to: endYear}})"/>
+      </form>
     </popover>
   </div>
 </template>
@@ -60,9 +65,18 @@
     name: "TimePeriodMenu",
     methods: {
       changeSelection(timePeriod, value = {}) {
+        console.log("hi")
+        if (timePeriod === 'Custom') {
+          console.log(value)
+          if (value.customRangeSelection.from === "" ||
+            value.customRangeSelection.to === "") {
+            return false;
+          }
+          this.$refs.customDateRangePopover.visible = false;
+        }
         this.$store.dispatch('settings/setTimePeriod', {timePeriod, ...value});
         this.$refs.yearPickRef.visible = false;
-        this.$refs.customDateRangePopover.visible = false;
+
       }
     },
     computed: {
@@ -80,14 +94,6 @@
       customRangeSelection() {
         return this.$store.getters['settings/customRangeSelection']
       },
-      maxDate: function () {
-        var now = new Date()
-        return now.toISOString()
-      },
-      minDate: function () {
-        var now = new Date()
-        return now.toISOString()
-      }
     },
     mounted() {
       console.log(this.possibleYears);
@@ -125,7 +131,7 @@
 
   .menu-item {
     cursor: pointer;
-    padding: 0.8rem;
+    padding: 1rem;
 
     display: flex;
     flex-direction: row;

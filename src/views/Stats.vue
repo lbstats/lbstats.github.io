@@ -7,6 +7,8 @@
         </a>
       </Slide>
       <TimePeriodMenu/>
+      <StatsHeader/>
+
     </div>
   </div>
 </template>
@@ -14,10 +16,11 @@
 <script>
   import TimePeriodMenu from "../components/TimePeriodMenu";
   import {Slide} from 'vue-burger-menu'
+  import StatsHeader from "../components/StatsHeader";
 
   export default {
     name: "",
-    components: {TimePeriodMenu, Slide}
+    components: {StatsHeader, TimePeriodMenu, Slide}
   }
 </script>
 
