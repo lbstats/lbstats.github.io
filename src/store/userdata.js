@@ -22,7 +22,6 @@ const actions = {
 
 const mutations = {
   setUserData(state, data) {
-    console.log(JSON.stringify(data), "----------");
     state.profile = data.profile;
     state.watched = data.watched;
     state.ratings = data.ratings;

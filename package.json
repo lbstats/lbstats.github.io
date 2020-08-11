@@ -9,12 +9,18 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "luxon": "1.24.1",
     "papaparse": "5.2.0",
     "register-service-worker": "^1.7.1",
     "vue": "^2.6.11",
+    "vue-burger-menu": "2.0.5",
+    "vue-datetime": "1.0.0-beta.13",
+    "vue-float-action-button": "0.6.6",
+    "vue-js-popover": "1.2.1",
     "vue-router": "^3.2.0",
     "vuex": "^3.4.0",
-    "vuex-persist": "2.2.0"
+    "vuex-persist": "2.2.0",
+    "weekstart": "1.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",

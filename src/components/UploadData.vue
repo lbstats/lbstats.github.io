@@ -38,9 +38,6 @@
       profile() {
         return this.$store.getters.profile;
       },
-      isDataReady() {
-        return this.$store.getters.profile.Username != null
-      }
     },
     methods: {
       storeProfile(data) {

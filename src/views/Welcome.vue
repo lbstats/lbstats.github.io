@@ -1,6 +1,5 @@
 <template>
-  <div class="welcome"
-       >
+  <div class="welcome">
     <WelcomeBanner/>
     <UploadData/>
     <Footer/>

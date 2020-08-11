@@ -4,6 +4,12 @@ import './registerServiceWorker'
 import router from './router'
 import store from './store'
 
+import { Datetime } from 'vue-datetime'
+// You need a specific loader for CSS files
+import 'vue-datetime/dist/vue-datetime.css'
+
+Vue.component('datetime', Datetime);
+
 Vue.config.productionTip = false;
 Vue.prototype.zip = window.zip;
 
